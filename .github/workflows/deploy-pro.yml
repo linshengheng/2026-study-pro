@@ -45,12 +45,20 @@ jobs:
           name: pro-dist
           path: dist
 
-      - name: 部署到PRO生产ECS
-        uses: easingthemes/ssh-deploy@v2
+      # 加载生产环境私钥
+      - name: 启用SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PRO_SSH_PRIVATE_KEY }}
+
+      # Rsync部署，rsync参数和你原来ARGS保持一致
+      - name: Rsync部署到PRO生产ECS
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.PRO_SSH_PRIVATE_KEY }}
-          ARGS: "-rltgoDzvO --delete"
-          SOURCE: "dist/"
           REMOTE_HOST: ${{ secrets.PRO_ECS_HOST }}
           REMOTE_USER: ${{ secrets.PRO_ECS_USER }}
-          TARGET: "/usr/share/nginx/html" # 生产机静态目录
+          TARGET: "/usr/share/nginx/html"
+        run: |
+          ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
+          # 原参数 -rltgoDzvO --delete，和旧ssh-deploy行为保持一致
+          rsync -rltgoDzvO --delete dist/ $REMOTE_USER@$REMOTE_HOST:$TARGET
+          ssh $REMOTE_USER@$REMOTE_HOST "chmod -R 755 $TARGET"

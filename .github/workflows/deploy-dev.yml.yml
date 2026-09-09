@@ -45,12 +45,21 @@ jobs:
           name: dev-dist
           path: dist
 
-      - name: 部署到DEV测试ECS
-        uses: easingthemes/ssh-deploy@v2
+      # 加载私钥
+      - name: 启用SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
+
+      # 部署：rsync上传，参数和你原来ARGS保持一致
+      - name: Rsync部署到DEV测试ECS
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
-          ARGS: "-rltgoDzvO --delete"
-          SOURCE: "dist/"
           REMOTE_HOST: ${{ secrets.DEV_ECS_HOST }}
           REMOTE_USER: ${{ secrets.DEV_ECS_USER }}
-          TARGET: "/usr/share/nginx/html" # 测试机静态目录
+          TARGET: "/usr/share/nginx/html"
+        run: |
+          ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
+          # 参数 -rltgoDzvO --delete 和你之前 ARGS 完全一样
+          rsync -rltgoDzvO --delete dist/ $REMOTE_USER@$REMOTE_HOST:$TARGET
+          # 可选：执行权限修复
+          ssh $REMOTE_USER@$REMOTE_HOST "chmod -R 755 $TARGET"
