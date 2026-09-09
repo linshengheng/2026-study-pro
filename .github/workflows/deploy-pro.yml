@@ -11,17 +11,22 @@ jobs:
         with:
           ref: main
 
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: 设置 Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: 安装依赖
-        run: npm install
+        run: pnpm install --frozen-lockfile
 
       - name: 打包
-        run: npm run build
+        run: pnpm run build
 
       - name: 上传dist制品
         uses: actions/upload-artifact@v4
