@@ -1,0 +1,51 @@
+name: PRO｜手动构建部署生产环境
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出 main 分支代码
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: 设置 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm install
+
+      - name: 打包
+        run: npm run build
+
+      - name: 上传dist制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-dist
+          path: dist
+          retention-days: 90
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下载dist
+        uses: actions/download-artifact@v4
+        with:
+          name: pro-dist
+          path: dist
+
+      - name: 部署到PRO生产ECS
+        uses: easingthemes/ssh-deploy@v2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRO_SSH_PRIVATE_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "dist/"
+          REMOTE_HOST: ${{ secrets.PRO_ECS_HOST }}
+          REMOTE_USER: ${{ secrets.PRO_ECS_USER }}
+          TARGET: "/usr/share/nginx/html" # 生产机静态目录
