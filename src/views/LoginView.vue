@@ -63,7 +63,7 @@ async function handleLogin() {
 
 onMounted(() => {
   refreshCaptcha()
-  ElMessage.success('欢迎光临')
+  ElMessage.success('欢迎光临我的网站')
   void goPostApi({
     userName: 'xiaoming',
     age: 18,
