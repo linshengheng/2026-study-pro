@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
+import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { goPostApi } from '../api/auth'
@@ -62,6 +63,7 @@ async function handleLogin() {
 
 onMounted(() => {
   refreshCaptcha()
+  ElMessage.success('欢迎光临')
   void goPostApi({
     userName: 'xiaoming',
     age: 18,
