@@ -56,7 +56,7 @@ jobs:
         env:
           REMOTE_HOST: ${{ secrets.DEV_ECS_HOST }}
           REMOTE_USER: ${{ secrets.DEV_ECS_USER }}
-          TARGET: "/usr/share/nginx/html"
+          TARGET: "/var/www/vue-project"
         run: |
           ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
           # 参数 -rltgoDzvO --delete 和你之前 ARGS 完全一样
