@@ -1,0 +1,30 @@
+name: Frontend Build & Push SWR
+on:
+  push:
+    branches: [ dev, sit, master ]
+  workflow_dispatch: # 支持手动触发
+
+env:
+  SWR_REGISTRY: swr.cn-north-4.myhuaweicloud.com
+  SWR_ORG: lshweb
+  IMAGE_NAME: demo-web
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # 登录华为SWR
+      - name: Login to HuaweiCloud SWR
+        run: |
+          docker login ${{ env.SWR_REGISTRY }} -u ${{ secrets.SWR_USER }} -p ${{ secrets.SWR_PWD }}
+
+      # 构建并推送镜像
+      - name: Build & Push Docker Image
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          FULL_IMAGE=${{ env.SWR_REGISTRY }}/${{ env.SWR_ORG }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
+          docker build -t ${FULL_IMAGE} .
+          docker push ${FULL_IMAGE}
