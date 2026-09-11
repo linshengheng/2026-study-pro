@@ -2,37 +2,27 @@ name: Frontend Build & Push SWR
 on:
   push:
     branches: [ dev, sit, master ]
-  workflow_dispatch: # 支持手动点按钮触发
+  workflow_dispatch: # 支持手动触发
 
 env:
-  # 改成你的SWR地址，你是华北北京四：swr.cn-north-4.myhuaweicloud.com
   SWR_REGISTRY: swr.cn-north-4.myhuaweicloud.com
-  SWR_ORG: OpenIndustry
-  IMAGE_NAME: openindustry-web
+  SWR_ORG: lshweb
+  IMAGE_NAME: demo-web
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      # 可选：如果不用多阶段Dockerfile，就开启node打包
-      # - name: Setup Node
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: 20
-      # - name: Install & Build
-      #   run: |
-      #     npm install
-      #     npm run build
-
-      # 登录华为SWR，密钥存在仓库Secrets
+      # 登录华为SWR
       - name: Login to HuaweiCloud SWR
         run: |
           docker login ${{ env.SWR_REGISTRY }} -u ${{ secrets.SWR_USER }} -p ${{ secrets.SWR_PWD }}
 
-      - name: Build Docker Image
+      # 构建并推送镜像
+      - name: Build & Push Docker Image
         run: |
           IMAGE_TAG=${{ github.sha }}
           FULL_IMAGE=${{ env.SWR_REGISTRY }}/${{ env.SWR_ORG }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
